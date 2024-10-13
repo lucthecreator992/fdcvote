@@ -92,14 +92,18 @@
     .reset-btn:hover {
       background-color: #d32f2f;
     }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>VOTE PARA DECIDIR QUEM SÃO OS MELHORES DESSA SEASON!</h1>
+  <h1>VOTE NOS MELHORES JOGADORES DESSA SEASON!</h1>
   <div id="categories"></div>
 
-  <!-- Botão para resetar os votos -->
-  <button class="reset-btn" onclick="resetVotes()">Resetar Votos</button>
+  <!-- Botão de redefinir votos, visível apenas para administradores -->
+  <button id="reset-btn" class="reset-btn hidden" onclick="resetVotes()">Resetar Votos</button>
 
   <script>
     const categories = [
@@ -110,25 +114,13 @@
       { name: "BEST ST", players: ["Player M", "Player N", "Player O"] },
     ];
 
-    // Contador de votos por categoria e jogador
-    let voteCounts = JSON.parse(localStorage.getItem('voteCounts')) || {};
-
-    if (Object.keys(voteCounts).length === 0) {
-      categories.forEach(category => {
-        voteCounts[category.name] = {};
-        category.players.forEach(player => {
-          voteCounts[category.name][player] = 0;
-        });
-      });
-    }
-
     const votedCategories = JSON.parse(localStorage.getItem('votes')) || {};
 
     function sendVoteToDiscord(category, player) {
-      const webhookUrl = 'https://discord.com/api/webhooks/1295011304867762216/udUhv7xhAz4OhBaK-FjPqrU9QUDRjJMLbveZONjLj90gbCTLos9VJL2L6drGxJlH3ezF'; // coloque aqui o seu webhook do Discord
+      const webhookUrl = 'https://discord.com/api/webhooks/1295011304867762216/udUhv7xhAz4OhBaK-FjPqrU9QUDRjJMLbveZONjLj90gbCTLos9VJL2L6drGxJlH3ezF'; // Coloque o webhook do Discord aqui
 
       const data = {
-        content: `Votação na categoria **${category}** - Jogador: **${player}**. Total de votos: ${voteCounts[category][player]}`
+        content: `Votação na categoria **${category}** - Jogador: **${player}**`
       };
 
       fetch(webhookUrl, {
@@ -150,13 +142,8 @@
         return;
       }
 
-      // Incrementa o voto para o jogador
-      voteCounts[category][player] += 1;
-      localStorage.setItem('voteCounts', JSON.stringify(voteCounts));
-
       votedCategories[category] = player;
       localStorage.setItem('votes', JSON.stringify(votedCategories));
-
       sendVoteToDiscord(category, player);
       alert(`Voto registrado com sucesso! Você votou em ${player} na categoria ${category}.`);
 
@@ -191,12 +178,20 @@
 
     function resetVotes() {
       localStorage.removeItem('votes');
-      localStorage.removeItem('voteCounts');
       alert('Todos os votos foram resetados!');
       location.reload();
     }
 
+    // Oculta o botão de redefinir para os usuários não administradores
+    function checkAdmin() {
+      const isAdmin = prompt("Insira a senha de administrador:");
+      if (isAdmin === "admin123") {
+        document.getElementById('reset-btn').classList.remove('hidden');
+      }
+    }
+
     renderCategories();
+    checkAdmin(); // Chama a função para verificar se o usuário é administrador
   </script>
 </body>
 </html>
